@@ -754,13 +754,12 @@ class ServiceMethodCompiler(ProtoContentBase):
             input messages, None is returned.
         """
         package, name = parse_source_type_name(self.proto_obj.input_type)
-
         # Nested types are currently flattened without dots.
         # Todo: keep a fully quantified name in types, that is
         # comparable with method.input_type
         for msg in self.request.all_messages:
             if (
-                msg.py_name == name.replace(".", "")
+                msg.py_name == pythonize_class_name(name.replace(".", ""))
                 and msg.output_file.package == package
             ):
                 return msg
