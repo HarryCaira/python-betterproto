@@ -760,6 +760,7 @@ class ServiceMethodCompiler(ProtoContentBase):
         for msg in self.request.all_messages:
             if (
                 msg.py_name == pythonize_class_name(name.replace(".", ""))
+                or msg.py_name == name.replace(".", "")
                 and msg.output_file.package == package
             ):
                 return msg

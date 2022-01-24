@@ -3,5 +3,16 @@ syntax = "proto3";
 
 package empty_service;
 
+message CreatePublicSecurityIDRequest {
+    int32 new_fieldID = 5;
+    int32 camelCase = 1;
+    int32 UPPERCASE = 4;
+  }
+
+  message CreatePublicSecurityIDResponse {
+      
+  }
+
 service Test {
+    rpc CreatePublicSecurityID(CreatePublicSecurityIDRequest)returns(CreatePublicSecurityIDResponse){}
 }
