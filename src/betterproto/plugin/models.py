@@ -212,7 +212,7 @@ class PluginRequestCompiler:
     def all_messages(self) -> List["MessageCompiler"]:
         """All of the messages in this request.
 
-        Returns
+
         -------
         List[MessageCompiler]
             List of all of the messages in this request.
@@ -483,11 +483,16 @@ class FieldCompiler(MessageCompiler):
             return 'b""'
         elif self.field_type == "enum":
             enum_proto_obj_name = self.proto_obj.type_name.split(".").pop()
-            enum = next(
+            t = [
                 e
                 for e in self.output_file.enums
                 if e.proto_obj.name == enum_proto_obj_name
-            )
+                or e.proto_obj.name == pythonize_class_name(enum_proto_obj_name)
+            ]
+            if len(t) == 0:
+                return "None"
+
+            enum = t[0]
             return enum.default_value_string
         else:
             # Message type
