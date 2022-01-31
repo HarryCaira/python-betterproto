@@ -547,8 +547,10 @@ class MapEntryCompiler(FieldCompiler):
                 ).py_type
 
                 # Get proto types
-                self.proto_k_type = FieldDescriptorProtoType(nested.field[0].type).name
-                self.proto_v_type = FieldDescriptorProtoType(nested.field[1].type).name
+                self.proto_k_type = FieldDescriptorProtoType(
+                    nested.field[0].type).name
+                self.proto_v_type = FieldDescriptorProtoType(
+                    nested.field[1].type).name
         super().__post_init__()  # call FieldCompiler-> MessageCompiler __post_init__
 
     @property
@@ -590,7 +592,8 @@ class EnumDefinitionCompiler(MessageCompiler):
                 name=sanitize_name(entry_proto_value.name),
                 value=entry_proto_value.number,
                 comment=get_comment(
-                    proto_file=self.source_file, path=self.path + [2, entry_number]
+                    proto_file=self.source_file, path=self.path +
+                    [2, entry_number]
                 ),
             )
             for entry_number, entry_proto_value in enumerate(self.proto_obj.value)
@@ -723,14 +726,14 @@ class ServiceMethodCompiler(ProtoContentBase):
         # Todo: keep a fully quantified name in types, that is
         # comparable with method.input_type
         for msg in self.request.all_messages:
-            if (
-                msg.py_name == name.replace(".", "")
-                and msg.output_file.package == package
-            ):
+            if ((msg.py_name == pythonize_class_name(name.replace(".", ""))
+                 or msg.py_name == name.replace(".", "")
+                 or msg.py_name.lower() == pythonize_class_name(name.replace(".", "")).lower())
+                    and msg.output_file.package == package):
                 return msg
         return None
 
-    @property
+    @ property
     def py_input_message_type(self) -> str:
         """String representation of the Python type corresponding to the
         input message.
@@ -746,7 +749,7 @@ class ServiceMethodCompiler(ProtoContentBase):
             source_type=self.proto_obj.input_type,
         ).strip('"')
 
-    @property
+    @ property
     def py_output_message_type(self) -> str:
         """String representation of the Python type corresponding to the
         output message.
@@ -763,10 +766,10 @@ class ServiceMethodCompiler(ProtoContentBase):
             unwrap=False,
         ).strip('"')
 
-    @property
+    @ property
     def client_streaming(self) -> bool:
         return self.proto_obj.client_streaming
 
-    @property
+    @ property
     def server_streaming(self) -> bool:
         return self.proto_obj.server_streaming
