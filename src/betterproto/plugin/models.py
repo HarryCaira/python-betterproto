@@ -212,7 +212,7 @@ class PluginRequestCompiler:
     def all_messages(self) -> List["MessageCompiler"]:
         """All of the messages in this request.
 
-        Returns
+
         -------
         List[MessageCompiler]
             List of all of the messages in this request.
@@ -483,11 +483,17 @@ class FieldCompiler(MessageCompiler):
             return 'b""'
         elif self.field_type == "enum":
             enum_proto_obj_name = self.proto_obj.type_name.split(".").pop()
-            enum = next(
+            t = [
                 e
                 for e in self.output_file.enums
                 if e.proto_obj.name == enum_proto_obj_name
-            )
+                or e.proto_obj.name == pythonize_class_name(enum_proto_obj_name)
+                or e.proto_obj.name.lower() == pythonize_class_name(enum_proto_obj_name).lower()
+            ]
+            if len(t) == 0:
+                return "None"
+
+            enum = t[0]
             return enum.default_value_string
         else:
             # Message type
@@ -581,8 +587,10 @@ class MapEntryCompiler(FieldCompiler):
                 ).py_type
 
                 # Get proto types
-                self.proto_k_type = FieldDescriptorProtoType(nested.field[0].type).name
-                self.proto_v_type = FieldDescriptorProtoType(nested.field[1].type).name
+                self.proto_k_type = FieldDescriptorProtoType(
+                    nested.field[0].type).name
+                self.proto_v_type = FieldDescriptorProtoType(
+                    nested.field[1].type).name
         super().__post_init__()  # call FieldCompiler-> MessageCompiler __post_init__
 
     @property
@@ -624,7 +632,8 @@ class EnumDefinitionCompiler(MessageCompiler):
                 name=sanitize_name(entry_proto_value.name),
                 value=entry_proto_value.number,
                 comment=get_comment(
-                    proto_file=self.source_file, path=self.path + [2, entry_number]
+                    proto_file=self.source_file, path=self.path +
+                    [2, entry_number]
                 ),
             )
             for entry_number, entry_proto_value in enumerate(self.proto_obj.value)
@@ -759,8 +768,9 @@ class ServiceMethodCompiler(ProtoContentBase):
         # comparable with method.input_type
         for msg in self.request.all_messages:
             if (
-                msg.py_name == pythonize_class_name(name.replace(".", ""))
-                or msg.py_name == name.replace(".", "")
+                (msg.py_name == pythonize_class_name(name.replace(".", ""))
+                 or msg.py_name == name.replace(".", "")
+                 or msg.py_name.lower() == pythonize_class_name(name.replace(".", "")).lower())
                 and msg.output_file.package == package
             ):
                 return msg
